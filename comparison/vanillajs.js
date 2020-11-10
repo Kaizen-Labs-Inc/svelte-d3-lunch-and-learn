@@ -24,7 +24,6 @@ document.addEventListener('DOMContentLoaded', function() {
     let height = Math.round(width * .61 - radius * 2);
 
     d3.csv('aircraft_data.csv', d3.autoType).then(data => {
-        let nested = Array.from(d3.group(data, d => { return d.Airplane; }));
         let speeds = data.map(d => { return d.Speed; });
         let smpg = data.map(d => { return d.SMPG; });
 
@@ -39,19 +38,20 @@ document.addEventListener('DOMContentLoaded', function() {
         let svg = d3.select('#js-svg-container')
             .append('svg')
             .attr('height', height)
-            .attr('width', width);
+            .attr('width', boxWidth);
 
         let groups = svg.selectAll('g')
-            .data(nested)
+            .data(data)
             .enter()
             .append('g')
             .attr('transform', d => {
-                return 'translate(' + x(d[1][0].Speed) + ',' + y(d[1][0].SMPG) + ')';
+                return 'translate(' + x(d.Speed) + ',' + y(d.SMPG) + ')';
             });
 
         let circles = groups.append('circle')
             .attr('r', radius)
-            .style('fill', d => { return typeColors[d[1][0].Type]; })
+            .style('fill', d => { return typeColors[d.Type]; })
+            .on('click', d => { alert(JSON.stringify(d)) })
 
         let scaleXAxis = d3.axisBottom()
             .scale(x);
@@ -73,6 +73,5 @@ document.addEventListener('DOMContentLoaded', function() {
             el.appendChild(txt);
             box.appendChild(el)
         })
-
     });
 });
