@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
         let circles = groups.append('circle')
             .attr('r', radius)
             .style('fill', d => { return typeColors[d.Type]; })
-            .on('click', d => { alert(JSON.stringify(d)) })
+            .on('click', e => { alert(JSON.stringify(e.target["__data__"])) })
 
         let scaleXAxis = d3.axisBottom()
             .scale(x);
