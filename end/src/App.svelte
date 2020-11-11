@@ -15,6 +15,7 @@
     let x;
     let y;
     let highlighted;
+    let minSeats = 1;
 
     let margin = {
         top: 5,
@@ -29,7 +30,7 @@
         return list[Math.floor((Math.random() * list.length))];
     }
 
-    $: filteredRows = reFilterRows(rows, type);
+    $: filteredRows = reFilterRows(rows, type, minSeats);
 
     $: {
         if (svg && filteredRows) {
@@ -42,16 +43,8 @@
                 .join(
                     enter => enter.append('circle')
                         .attr('opacity', 0)
-                        .attr('r', d => {
-                            if (highlighted === d) {
-                                return 12;
-                            } else {
-                                return radius;
-                            }
-                        })
-                        .attr('fill', d => {
-                            return types[d.Type].color;
-                        })
+                        .attr('r', radius)
+                        .attr('fill', d => types[d.Type].color)
                         .attr('cx', d => x(d.Speed))
                         .attr('cy', d => y(d.SMPG))
                         .call(e => e.transition(slow).attr('opacity', 1)),
@@ -71,14 +64,18 @@
         }
     }
 
-    function reFilterRows(sourceRows, typeString) {
-        return sourceRows.filter(r => {
-            if (typeString === TYPE_ALL) {
-                return true
-            } else {
-                return r.Type === type;
+    function reFilterRows(sourceRows, typeString, minimumSeats) {
+        let filtered = sourceRows.filter(r => {
+            if (typeString !== TYPE_ALL && r.Type !== type) {
+                return false
             }
+            if (minimumSeats && r.Seats < minimumSeats) {
+                return false
+            }
+            return true
         });
+        console.log("found " + filtered.length)
+        return filtered
     }
 
     onMount(() => {
@@ -88,7 +85,6 @@
         let height = Math.round(width * .61 - radius * 2);
 
         csv('aircraft_data.csv', autoType).then(data => {
-            rows = data;
 
             let speeds = data.map(d => {
                 return d.Speed;
@@ -144,6 +140,7 @@
 
 
             headline = 'Fuel Efficiency for Owner-flown Aircraft';
+            rows = data;
             loading = false;
         });
     })
@@ -154,10 +151,15 @@
     }
     .container {
         max-width: 800px;
-        margin: 0 auto;
+        margin: 0 auto 500px auto;
     }
-    .description {
-        min-height: 70px;
+    p {
+        min-height: 40px;
+        margin: 10px 0;
+    }
+    input {
+        padding: 0;
+        margin: 0;
     }
 </style>
 <div class="container">
@@ -171,9 +173,13 @@
             {/each}
         </select>
     </label>
+    <label>
+        <div>Minimum seats: {minSeats}</div>
+        <div>1 <input type="range" min="1" max="10" bind:value={minSeats} /> 10</div>
+    </label>
     <p class="description">{description}</p>
     <div id="js-svg-container"></div>
     {#if highlighted}
-            <Aircraft aircraft={highlighted} />
+        <Aircraft aircraft={highlighted} />
     {/if}
 </div>
