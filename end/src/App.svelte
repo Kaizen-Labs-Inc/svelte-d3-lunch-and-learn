@@ -1,63 +1,73 @@
 <script>
-    import { csv, autoType, scaleLinear, min, max, select, axisBottom, axisLeft } from 'd3';
-    import { onMount } from 'svelte';
+    import {csv, autoType, scaleLinear, min, max, select, axisBottom, axisLeft, transition} from 'd3';
+    import {onMount} from 'svelte';
+    import {types} from './types';
+    import Aircraft from "./Aircraft.svelte";
+
     let rows = [];
     const TYPE_ALL = 'all';
-    let type = TYPE_ALL;
+    let type = 'NA';
+    $: description = types[type] ? types[type].description : '';
     let loading = true;
     let headline = "Loading";
     let svg;
     let circles;
     let x;
     let y;
-
-    let types = {
-        E: {color: '#4CB963', name: 'Electric'},
-        TD: {color: '#ECD444', name: 'Turbo Diesel'},
-        T: {color: '#D7BCE8', name: 'Turbocharged'},
-        NA: {color: '#EF3054', name: 'Naturally-aspirated'},
-        JP: {color: '#1E2EDE', name: 'Turboprop'},
-        J: {color: '#7E22cE', name: 'Jet'}
-    }
+    let highlighted;
 
     let margin = {
         top: 5,
-        bottom: 25,
-        left: 25,
+        bottom: 45,
+        left: 45,
         right: 5
     };
 
-    let radius = 5;
+    let radius = 7;
 
+    function random(list) {
+        return list[Math.floor((Math.random() * list.length))];
+    }
 
     $: filteredRows = reFilterRows(rows, type);
 
     $: {
-        if (svg) {
-            const slow = svg.transition()
-                .duration(750);
+        if (svg && filteredRows) {
 
-            console.log(rows);
-            console.log(filteredRows);
+            const slow = transition()
+                .duration(1000);
 
-            circles.data(filteredRows)
+            svg.selectAll('circle')
+                .data(filteredRows)
                 .join(
-                    enter => enter
-                        .append("circle")
-                        .attr('r', radius)
-                        .attr('fill', d => { return types[d.Type].color; })
+                    enter => enter.append('circle')
+                        .attr('opacity', 0)
+                        .attr('r', d => {
+                            if (highlighted === d) {
+                                return 12;
+                            } else {
+                                return radius;
+                            }
+                        })
+                        .attr('fill', d => {
+                            return types[d.Type].color;
+                        })
                         .attr('cx', d => x(d.Speed))
-                        .attr('cy', d => y(d.SMPG)),
+                        .attr('cy', d => y(d.SMPG))
+                        .call(e => e.transition(slow).attr('opacity', 1)),
                     update => update
-                        .call(update => update.transition(slow)
-                            .attr('fill', d => { return types[d.Type].color; })
+                        .call(e => e.transition(slow)
+                            .attr('fill', d => {
+                                return types[d.Type].color;
+                            })
                             .attr('cx', d => x(d.Speed))
                             .attr('cy', d => y(d.SMPG))
                         ),
-                    exit => exit.call(exit => exit.remove())
-                );
-
-
+                    remove => remove
+                        .call(e => e.transition(slow).attr('opacity', 0))
+                        .remove()
+                )
+                .on('click', e => { highlighted = e.target["__data__"] })
         }
     }
 
@@ -72,8 +82,6 @@
     }
 
     onMount(() => {
-
-
         let box = document.getElementById('js-svg-container');
         let boxWidth = Math.round(box.offsetWidth - 2);
         let width = boxWidth - margin.left - margin.right - radius * 2;
@@ -82,9 +90,14 @@
         csv('aircraft_data.csv', autoType).then(data => {
             rows = data;
 
-            let speeds = data.map(d => { return d.Speed; });
-            let smpg = data.map(d => { return d.SMPG; });
+            let speeds = data.map(d => {
+                return d.Speed;
+            });
+            let smpg = data.map(d => {
+                return d.SMPG;
+            });
 
+            // define x and y scale functions
             x = scaleLinear()
                 .domain([min(speeds), max(speeds)])
                 .range([margin.left + radius, boxWidth - margin.right - radius]);
@@ -98,30 +111,39 @@
                 .attr('height', height)
                 .attr('width', boxWidth);
 
-            circles = svg.selectAll('circle')
-                .data(data)
-                .join('circle')
-                .attr('r', radius)
-                .attr('fill', d => { return types[d.Type].color; })
-                .attr('cx', d => x(d.Speed))
-                .attr('cy', d => y(d.SMPG))
-                .on('click', e => { alert(JSON.stringify(e.target["__data__"])) });
-
+            // x axis
             let scaleXAxis = axisBottom()
                 .scale(x);
 
-            let axisX = svg.append("g")
+            svg.append("g")
                 .attr('transform', 'translate(0,' + (height - margin.bottom) + ')')
                 .call(scaleXAxis);
+
+            svg.append('text')
+                .attr('x', margin.left + width / 2)
+                .attr('y', height - 3)
+                .attr('text-anchor', 'middle')
+                .text('Speed (kts)')
+                .attr('fill', '#444444');
 
             let scaleYAxis = axisLeft()
                 .scale(y);
 
-            let axisY = svg.append("g")
+            // y axis
+            svg.append("g")
                 .attr('transform', 'translate(' + margin.left + ', 0)')
                 .call(scaleYAxis);
 
-            headline = 'Owner-flown Aircraft Fuel Efficiency';
+            svg.append('text')
+                .attr('x', 12)
+                .attr('y', height / 2)
+                .attr('text-anchor', 'middle')
+                .attr('transform', 'rotate(-90, 12, ' + height / 2 + ')')
+                .text('Seat-miles / gallon')
+                .attr('fill', '#444444');
+
+
+            headline = 'Fuel Efficiency for Owner-flown Aircraft';
             loading = false;
         });
     })
@@ -134,11 +156,14 @@
         max-width: 800px;
         margin: 0 auto;
     }
+    .description {
+        min-height: 70px;
+    }
 </style>
 <div class="container">
     <h1>{headline}</h1>
     <label>
-        Types:
+        Engine type:
         <select bind:value={type}>
             <option value={TYPE_ALL}>Show all</option>
             {#each Object.keys(types) as id}
@@ -146,10 +171,9 @@
             {/each}
         </select>
     </label>
+    <p class="description">{description}</p>
     <div id="js-svg-container"></div>
-    {#if !loading}
-        {#each filteredRows as row}
-            <div>{row.Airplane}</div>
-        {/each}
+    {#if highlighted}
+            <Aircraft aircraft={highlighted} />
     {/if}
 </div>

@@ -1,6 +1,5 @@
 Airplane,Certification,Engine,Type,No,Seats,Useful,Profile,Source,Altitude,Speed,Burn,FuelCap,400NMSeats,MPG,SMPG,Range,Endurance
 Pipistrel Alpha Electro,,PEM 60MVLC,E,1,2,400,85% cruise,https://www.pipistrel-aircraft.com/aircraft/electric-flight/alpha-electro/#tab-id-2,5000,85,1.5,1.5,2,65.9,131.8,43,1.0
-Risen,,Rotax 912is,NA,1,2,668,Econ cruise,http://www.flyrisen.com/indexEn.html,9000,102,2,52,3,58.7,117.3,2601,26.0
 Vari-Eze,Experimental,Continental O-200-A,NA,1,2,650,Max cruise,https://www.kitplanes.com/flight-review-back-to-the-future/,4500,151,4.2,36,3,41.3,82.7,1219,8.6
 Sonex Sonex,,Jaibru 3300,NA,1,2,530,Econ cruise,https://www.sonexaircraft.com/35-dollar-hamburger/,2000,113,3.6,17,2,36.1,72.2,477,4.7
 Bristel 915,,Rotax 915,T,1,2,500,Econ cruise,https://www.aopa.org/news-and-media/all-news/2020/april/pilot/bristell-915,15000,120,4,31,2,34.5,69.0,870,7.8
