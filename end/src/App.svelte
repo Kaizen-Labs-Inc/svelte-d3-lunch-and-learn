@@ -150,8 +150,8 @@
         color: #123456;
     }
     .container {
-        max-width: 800px;
-        margin: 0 auto 500px auto;
+        max-width: 600px;
+        margin: 0 auto 200px auto;
     }
     p {
         min-height: 40px;
@@ -160,6 +160,10 @@
     input {
         padding: 0;
         margin: 0;
+    }
+
+    circle {
+        cursor: pointer;
     }
 </style>
 <div class="container">
