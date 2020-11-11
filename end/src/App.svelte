@@ -161,10 +161,6 @@
         padding: 0;
         margin: 0;
     }
-
-    circle {
-        cursor: pointer;
-    }
 </style>
 <div class="container">
     <h1>{headline}</h1>
@@ -178,8 +174,8 @@
         </select>
     </label>
     <label>
-        <div>Minimum seats: {minSeats}</div>
-        <div>1 <input type="range" min="1" max="10" bind:value={minSeats} /> 10</div>
+        Minimum seats: {minSeats}<br/>
+        1 <input type="range" min="1" max="10" bind:value={minSeats} /> 10
     </label>
     <p class="description">{description}</p>
     <div id="js-svg-container"></div>
